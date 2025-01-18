@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Omnivox Calendar",
+  "version": "1.0.0",
+  "permissions": ["identity", "identity.email", "storage"],
+  "oauth2": {
+    "client_id": "393890758165-8v72r9bs35ras78q5g7p5p97g8em19pc.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/tasks"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.omnivox.ca/cvir/clre/default.aspx?*mode=liste*"],
+      "js": ["script.js"]
+    }
+  ]
+}
