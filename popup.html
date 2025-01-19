@@ -4,8 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Omnivox Calendar</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      label {
+        display: block;
+        margin: 10px 0 5px;
+      }
+      input {
+        padding: 8px;
+        width: 100%;
+        margin-bottom: 15px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello?</h1>
+    <h1>Omnivox Calendar</h1>
+    <form id="calendar-form">
+      <label for="start-time">Start Time</label>
+      <input type="date" id="start-time" name="start-time" required />
+
+      <label for="end-time">End Time</label>
+      <input type="date" id="end-time" name="end-time" required />
+
+      <button type="button" id="save-to-google">Save To Google Calendar</button>
+    </form>
+    <script src="./scripts/popup.js"></script>
   </body>
 </html>

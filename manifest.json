@@ -2,13 +2,7 @@
   "manifest_version": 3,
   "name": "Omnivox Calendar",
   "version": "1.0.0",
-  "permissions": [
-    "identity",
-    "identity.email",
-    "storage",
-    "cookies",
-    "https://johnabbott-lea.omnivox.ca/*"
-  ],
+  "permissions": ["identity", "identity.email", "cookies"],
   "oauth2": {
     "client_id": "393890758165-8v72r9bs35ras78q5g7p5p97g8em19pc.apps.googleusercontent.com",
     "scopes": [
@@ -21,7 +15,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://johnabbott-lea.omnivox.ca/cvir/doce/default.aspx?"],
+      "matches": ["https://johnabbott-lea.omnivox.ca/cvir/doce/default.aspx?*"],
       "js": ["./scripts/script.js"]
     }
   ],

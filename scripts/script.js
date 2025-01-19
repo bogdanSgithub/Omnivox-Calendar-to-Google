@@ -1,6 +1,6 @@
 chrome.runtime.sendMessage({ type: "contentReady" });
 
-const monthYear = "December 2024";
+console.log("hello?");
 
 async function main() {
   const calendarUrl =
@@ -30,7 +30,11 @@ async function getHtmlPage(url) {
 }
 
 function getItems(document) {
+  console.log(document);
   let dateElement = null;
+  const monthYear = document
+    .querySelector(".NomMoisMiniature")
+    .innerText.trim();
   const items = [];
   const tdAfficheListeElements = document.querySelectorAll(".tdAfficheListe");
   const baseUrl = window.location.origin;
@@ -128,12 +132,6 @@ function getItems(document) {
   return items;
 }
 
-function getMonthYear(document) {
-  return document.querySelector(".NomMoisMiniature").innerText.trim();
-}
-
-/*
-
 chrome.runtime.onMessage.addListener(async function (
   message,
   sender,
@@ -141,12 +139,12 @@ chrome.runtime.onMessage.addListener(async function (
 ) {
   if (message.type === "authCompleted" && message.authenticated) {
     const token = message.token;
-    const items = getItems();
+    /*const items = getItems();
     const existingItems = await fetchExistingItems(token);
     items.forEach((item) => {
       console.log(item);
       saveCalendarItem(token, item, existingItems);
-    });
+    });*/
   }
 });
 
@@ -221,7 +219,8 @@ async function saveAsTask(token, event) {
   }
 }
 
-async function fetchExistingItems(token) {
+async function fetchExistingItems(token, timeMin, timeMax) {
+  /*
   const [monthName, year] = monthYear.split(" ");
   const month = new Date(`${monthName} 1, ${year}`).getMonth();
 
@@ -234,7 +233,7 @@ async function fetchExistingItems(token) {
   const timeMax = new Date(
     endOfMonth.getTime() + 7 * 24 * 60 * 60 * 1000
   ).toISOString();
-
+  */
   const eventsResponse = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}`,
     {
@@ -262,4 +261,3 @@ async function fetchExistingItems(token) {
 
   return combinedItems;
 }
-*/
