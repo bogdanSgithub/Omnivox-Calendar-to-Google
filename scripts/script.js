@@ -1,23 +1,32 @@
-const targetUrl = "https://johnabbott-lea.omnivox.ca/cvir/clre/default.aspx?";
-
-console.log(getHtmlPage(url));
-
 chrome.runtime.sendMessage({ type: "contentReady" });
 
+const monthYear = "December 2024";
+
+async function main() {
+  const calendarUrl =
+    "https://johnabbott-lea.omnivox.ca/cvir/clre/default.aspx?cal=somm&mode=liste&jour=1&annee=2024&mois=11";
+
+  const doc = await getHtmlPage(calendarUrl);
+  const items = getItems(doc);
+  console.log(items);
+}
+
+main();
+
 async function getHtmlPage(url) {
-  fetch(url, {
-    method: "GET",
-    credentials: "include",
-  })
-    .then((response) => response.text())
-    .then((data) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(data, "text/html");
-      return doc;
-    })
-    .catch((error) => {
-      console.error("Request failed", error);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
     });
+    const data = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data, "text/html");
+    return doc;
+  } catch (error) {
+    console.error("Request failed", error);
+    return null;
+  }
 }
 
 function getItems(document) {
@@ -120,13 +129,10 @@ function getItems(document) {
 }
 
 function getMonthYear(document) {
-  const monthYear = document
-    .querySelector(".NomMoisMiniature")
-    .innerText.trim();
+  return document.querySelector(".NomMoisMiniature").innerText.trim();
 }
 
 /*
-const monthYear = getMonthYear();
 
 chrome.runtime.onMessage.addListener(async function (
   message,
