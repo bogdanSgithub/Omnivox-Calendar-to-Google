@@ -12,6 +12,19 @@ function getValueFromStorage(key) {
   });
 }
 
+document.getElementById("login-button").addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "loginWithGoogle" }, (response) => {
+    if (response.success) {
+      console.log("User authenticated!");
+      console.log("Authentication Token:", response.token);
+      alert("Successfully authenticated with Google!");
+    } else {
+      console.error("Authentication failed!");
+      alert("Authentication failed.");
+    }
+  });
+});
+
 document
   .getElementById("save-to-google")
   .addEventListener("click", saveToGoogle);
