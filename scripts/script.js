@@ -1,14 +1,23 @@
 chrome.runtime.sendMessage({ type: "contentReady" });
-
-console.log("hello?");
+const baseUrl = window.location.origin;
 
 async function main() {
-  const calendarUrl =
-    "https://johnabbott-lea.omnivox.ca/cvir/clre/default.aspx?cal=somm&mode=liste&jour=1&annee=2024&mois=11";
+  const startDate = "2024-10-01";
+  const endDate = "2025-12-18";
 
-  const doc = await getHtmlPage(calendarUrl);
-  const items = getItems(doc);
-  console.log(items);
+  let start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  while (start <= end) {
+    const year = start.getFullYear();
+    const month = start.getMonth() + 1;
+    const calendarUrl = `${baseUrl}/cvir/clre/default.aspx?cal=somm&mode=liste&jour=1&annee=${year}&mois=${month}`;
+    const doc = await getHtmlPage(calendarUrl);
+    const items = getItems(doc);
+    console.log(items);
+
+    start.setMonth(start.getMonth() + 1);
+  }
 }
 
 main();
@@ -30,14 +39,12 @@ async function getHtmlPage(url) {
 }
 
 function getItems(document) {
-  console.log(document);
   let dateElement = null;
   const monthYear = document
     .querySelector(".NomMoisMiniature")
     .innerText.trim();
   const items = [];
   const tdAfficheListeElements = document.querySelectorAll(".tdAfficheListe");
-  const baseUrl = window.location.origin;
 
   tdAfficheListeElements.forEach((element) => {
     const item = {
@@ -54,53 +61,11 @@ function getItems(document) {
       },
     };
 
-    let hourInfo = null;
-
     const aTag = element.querySelector("a");
     if (aTag) {
-      const onclickAttr = aTag.getAttribute("onclick");
-      let url = null;
-      if (onclickAttr) {
-        url = onclickAttr.match(/'([^']+)'/)[1];
-      } else {
-        url = aTag.getAttribute("href");
-      }
-      item.description = baseUrl + url;
-      const classText = aTag.innerText.replace("Class:", "").trim();
-      const additionalText = element.innerText
-        .replace(aTag.innerText, "")
-        .trim(); // Get the remaining text
-      const details = additionalText.split("\n");
-      const mainSummary = details.splice(1, 1);
-
-      item.summary = `${mainSummary} - ${classText}`;
-      item.description += `\n${details.join("\n").trim()}`;
+      parseTask(element, item, aTag);
     } else {
-      const text = element.innerText.replace("Class:", "").trim();
-      const hourSpan = element.querySelector(".tdAfficheListeHeure");
-
-      if (hourSpan) {
-        hourInfo = hourSpan.innerText.trim();
-      }
-
-      const cleanedText = hourInfo
-        ? text.replace(hourSpan.outerHTML, "").trim()
-        : text;
-
-      // Split the cleaned text into parts
-      const [classText, mainSummary, ...details] = cleanedText
-        .split("<br>")
-        .map((line) => line.trim())
-        .filter(Boolean);
-
-      item.summary = hourInfo
-        ? `${mainSummary} (${hourInfo}) - ${classText}`
-        : `${mainSummary} - ${classText}`;
-
-      const filteredDetails = details.filter(
-        (line) => !line.includes(hourInfo)
-      ); // Remove hourInfo from details
-      item.description = `${filteredDetails.join("\n").trim()}`;
+      parseEvent(element, item);
     }
 
     const newDateElement =
@@ -130,6 +95,62 @@ function getItems(document) {
   });
 
   return items;
+}
+
+function parseTask(element, item, aTag) {
+  let hourInfo = null;
+  const onclickAttr = aTag.getAttribute("onclick");
+  let url = null;
+  if (onclickAttr) {
+    url = onclickAttr.match(/'([^']+)'/)[1];
+  } else {
+    url = aTag.getAttribute("href");
+  }
+
+  item.description = baseUrl + url;
+  const classText = aTag.innerText.replace("Class:", "").trim();
+  const text = element.innerHTML.replace(aTag.outerHTML, "").trim();
+  const hourSpan = element.querySelector(".tdAfficheListeHeure");
+
+  if (hourSpan) {
+    hourInfo = hourSpan.innerText.trim();
+  }
+
+  const cleanedText = hourInfo
+    ? text.replace(hourSpan.outerHTML, "").trim()
+    : text;
+
+  const details = cleanedText.split("<br>");
+  details.shift();
+  const mainSummary = details.splice(0, 2);
+  mainSummary.reverse();
+  item.summary = hourInfo
+    ? `${mainSummary} (${hourInfo}) - ${classText}`
+    : `${mainSummary} - ${classText}`;
+  item.description += `\n${details.join("\n").trim()}`;
+}
+
+function parseEvent(element, item) {
+  let hourInfo = null;
+  const text = element.innerHTML.replace("Class:", "").trim();
+  const hourSpan = element.querySelector(".tdAfficheListeHeure");
+
+  if (hourSpan) {
+    hourInfo = hourSpan.innerText.trim();
+  }
+
+  const cleanedText = hourInfo
+    ? text.replace(hourSpan.outerHTML, "").trim()
+    : text;
+
+  const [classText, mainSummary, ...details] = cleanedText.split("<br>");
+
+  item.summary = hourInfo
+    ? `${mainSummary} (${hourInfo}) - ${classText}`
+    : `${mainSummary} - ${classText}`;
+
+  const filteredDetails = details.filter((line) => !line.includes(hourInfo));
+  item.description = `${filteredDetails.join("\n").trim()}`;
 }
 
 chrome.runtime.onMessage.addListener(async function (
