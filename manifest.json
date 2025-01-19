@@ -15,8 +15,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://johnabbott-lea.omnivox.ca/cvir/doce/default.aspx?*"],
-      "js": ["scripts/script.js"]
+      "matches": ["https://*.omnivox.ca/cvir/doce/default.aspx?*"],
+      "js": ["scripts/content-script.js"]
     }
   ],
   "action": {

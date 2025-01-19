@@ -12,14 +12,14 @@ function getValueFromStorage(key) {
   });
 }
 
+let token = null;
+
 document.getElementById("login-button").addEventListener("click", () => {
   chrome.runtime.sendMessage({ type: "loginWithGoogle" }, (response) => {
     if (response.success) {
-      console.log("User authenticated!");
-      console.log("Authentication Token:", response.token);
       alert("Successfully authenticated with Google!");
+      token = response.token;
     } else {
-      console.error("Authentication failed!");
       alert("Authentication failed.");
     }
   });
@@ -32,22 +32,25 @@ document
 async function saveToGoogle() {
   let startTime = document.getElementById("start-date").value;
   let endTime = document.getElementById("end-date").value;
-
   if (!startTime || !endTime) {
     alert("Please fill out both start and end dates.");
     return;
   }
-
-  const baseUrl = await getValueFromStorage("baseUrl");
-  console.log(baseUrl);
+  if (!token) {
+    alert("Please sign into Google.");
+    return;
+  }
   startTime = new Date(startTime);
   endTime = new Date(endTime);
-  console.log("hello?");
+
+  const baseUrl = await getValueFromStorage("baseUrl");
+
   while (startTime <= endTime) {
     const year = startTime.getFullYear();
     const month = startTime.getMonth() + 1;
     const calendarUrl = `${baseUrl}/cvir/clre/default.aspx?cal=somm&mode=liste&jour=1&annee=${year}&mois=${month}`;
     const items = await getOmnivoxCalendar(calendarUrl);
+    items.forEach((item) => {});
     console.log(items);
 
     startTime.setMonth(startTime.getMonth() + 1);

@@ -3,7 +3,7 @@ let authToken = "";
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.type === "loginWithGoogle") {
     authenticateUser(sendResponse);
-    return true; // Keep the message channel open for async response
+    return true;
   }
 });
 
@@ -14,9 +14,7 @@ function authenticateUser(sendResponse) {
       sendResponse({ success: false });
       return;
     }
-
     authToken = token;
-
     sendResponse({ success: true, token: authToken });
   });
 }
