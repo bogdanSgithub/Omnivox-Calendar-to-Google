@@ -1,25 +1,27 @@
+const targetUrl = "https://johnabbott-lea.omnivox.ca/cvir/clre/default.aspx?";
+
+console.log(getHtmlPage(url));
+
 chrome.runtime.sendMessage({ type: "contentReady" });
-let dateElement = null;
 
-const monthYear = document.querySelector(".NomMoisMiniature").innerText.trim();
-
-chrome.runtime.onMessage.addListener(async function (
-  message,
-  sender,
-  sendResponse
-) {
-  if (message.type === "authCompleted" && message.authenticated) {
-    const token = message.token;
-    const items = getItems();
-    const existingItems = await fetchExistingItems(token);
-    items.forEach((item) => {
-      console.log(item);
-      saveCalendarItem(token, item, existingItems);
+async function getHtmlPage(url) {
+  fetch(url, {
+    method: "GET",
+    credentials: "include",
+  })
+    .then((response) => response.text())
+    .then((data) => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, "text/html");
+      return doc;
+    })
+    .catch((error) => {
+      console.error("Request failed", error);
     });
-  }
-});
+}
 
-function getItems() {
+function getItems(document) {
+  let dateElement = null;
   const items = [];
   const tdAfficheListeElements = document.querySelectorAll(".tdAfficheListe");
   const baseUrl = window.location.origin;
@@ -116,6 +118,31 @@ function getItems() {
 
   return items;
 }
+
+function getMonthYear(document) {
+  const monthYear = document
+    .querySelector(".NomMoisMiniature")
+    .innerText.trim();
+}
+
+/*
+const monthYear = getMonthYear();
+
+chrome.runtime.onMessage.addListener(async function (
+  message,
+  sender,
+  sendResponse
+) {
+  if (message.type === "authCompleted" && message.authenticated) {
+    const token = message.token;
+    const items = getItems();
+    const existingItems = await fetchExistingItems(token);
+    items.forEach((item) => {
+      console.log(item);
+      saveCalendarItem(token, item, existingItems);
+    });
+  }
+});
 
 async function saveCalendarItem(token, item, existingItems) {
   let isAlreadySaved = false;
@@ -229,3 +256,4 @@ async function fetchExistingItems(token) {
 
   return combinedItems;
 }
+*/
