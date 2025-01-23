@@ -8,20 +8,33 @@ export async function getOmnivoxCalendar(url) {
     const data = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(data, "text/html");
-    return getItems(doc, baseUrl);
+    return await getItems(doc, baseUrl);
   } catch (error) {
     console.error("Request failed", error);
     return null;
   }
 }
 
-function getItems(document, baseUrl) {
+export function getValueFromStorage(key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([key], (result) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError));
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+}
+
+async function getItems(document, baseUrl) {
   let dateElement = null;
   const monthYear = document
     .querySelector(".NomMoisMiniature")
     .innerText.trim();
   const items = [];
   const tdAfficheListeElements = document.querySelectorAll(".tdAfficheListe");
+  const courseCodeToName = await getValueFromStorage("courseCodeToName");
 
   tdAfficheListeElements.forEach((element) => {
     const item = {
@@ -40,9 +53,9 @@ function getItems(document, baseUrl) {
 
     const aTag = element.querySelector("a");
     if (aTag) {
-      parseTask(element, item, aTag, baseUrl);
+      parseTask(element, item, aTag, baseUrl, courseCodeToName);
     } else {
-      parseEvent(element, item);
+      parseEvent(element, item, courseCodeToName);
     }
 
     const newDateElement =
@@ -73,7 +86,7 @@ function getItems(document, baseUrl) {
   return items;
 }
 
-function parseTask(element, item, aTag, baseUrl) {
+function parseTask(element, item, aTag, baseUrl, courseCodeToName) {
   let hourInfo = null;
   const onclickAttr = aTag.getAttribute("onclick");
   let url = null;
@@ -83,7 +96,8 @@ function parseTask(element, item, aTag, baseUrl) {
     url = aTag.getAttribute("href");
   }
   item.description = baseUrl + url;
-  const classText = aTag.innerText.replace("Class:", "").trim();
+  const classText =
+    courseCodeToName[aTag.innerText.replace("Class:", "").trim().split(" ")[0]];
   const text = element.innerHTML.replace(aTag.outerHTML, "").trim();
   const hourSpan = element.querySelector(".tdAfficheListeHeure");
 
@@ -100,12 +114,12 @@ function parseTask(element, item, aTag, baseUrl) {
   const mainSummary = details.splice(0, 2);
   mainSummary.reverse();
   item.summary = hourInfo
-    ? `${mainSummary} (${hourInfo}) - ${classText}`
-    : `${mainSummary} - ${classText}`;
+    ? `${classText} - ${mainSummary} (${hourInfo})`
+    : `${classText} - ${mainSummary}`;
   item.description += `\n${details.join("\n").trim()}`;
 }
 
-function parseEvent(element, item) {
+function parseEvent(element, item, courseCodeToName) {
   let hourInfo = null;
   const text = element.innerHTML.replace("Class:", "").trim();
   const hourSpan = element.querySelector(".tdAfficheListeHeure");
@@ -118,11 +132,12 @@ function parseEvent(element, item) {
     ? text.replace(hourSpan.outerHTML, "").trim()
     : text;
 
-  const [classText, mainSummary, ...details] = cleanedText.split("<br>");
+  let [classText, mainSummary, ...details] = cleanedText.split("<br>");
+  classText = courseCodeToName[classText.split(" ")[0]];
 
   item.summary = hourInfo
-    ? `${mainSummary} (${hourInfo}) - ${classText}`
-    : `${mainSummary} - ${classText}`;
+    ? `${classText} - ${mainSummary} (${hourInfo})`
+    : `${classText} - ${mainSummary}`;
 
   const filteredDetails = details.filter((line) => !line.includes(hourInfo));
   item.description = `${filteredDetails.join("\n").trim()}`;

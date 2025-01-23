@@ -1,16 +1,4 @@
-import { getOmnivoxCalendar } from "./omnivoxScraper.js";
-
-function getValueFromStorage(key) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([key], (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError));
-      } else {
-        resolve(result[key]);
-      }
-    });
-  });
-}
+import { getOmnivoxCalendar, getValueFromStorage } from "./omnivoxScraper.js";
 
 let token = null;
 
@@ -30,8 +18,13 @@ document
   .addEventListener("click", saveToGoogle);
 
 async function saveToGoogle() {
-  let startTime = document.getElementById("start-date").value;
-  let endTime = document.getElementById("end-date").value;
+  let startTime = new Date(
+    `${document.getElementById("start-date").value}T00:00:00`
+  );
+  const endTime = new Date(
+    `${document.getElementById("end-date").value}T00:00:00`
+  );
+  console.log(`start: ${startTime}, end: ${endTime}`);
   if (!startTime || !endTime) {
     alert("Please fill out both start and end dates.");
     return;
@@ -40,8 +33,6 @@ async function saveToGoogle() {
     alert("Please sign into Google.");
     return;
   }
-  startTime = new Date(startTime);
-  endTime = new Date(endTime);
 
   const baseUrl = await getValueFromStorage("baseUrl");
 

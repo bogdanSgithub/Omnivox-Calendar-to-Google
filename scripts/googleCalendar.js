@@ -1,4 +1,4 @@
-async function saveCalendarItem(token, item, existingItems) {
+async function saveItem(token, item, existingItems) {
   let isAlreadySaved = false;
 
   for (let i = 0; i < existingItems.length; i++) {
@@ -69,7 +69,7 @@ async function saveAsTask(token, event) {
   }
 }
 
-async function fetchExistingItems(token, timeMin, timeMax) {
+async function fetchItems(token, timeMin, timeMax) {
   /*
     const [monthName, year] = monthYear.split(" ");
     const month = new Date(`${monthName} 1, ${year}`).getMonth();
@@ -85,7 +85,7 @@ async function fetchExistingItems(token, timeMin, timeMax) {
     ).toISOString();
     */
   const eventsResponse = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}`,
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
