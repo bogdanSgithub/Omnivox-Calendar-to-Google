@@ -111,8 +111,9 @@ function parseTask(element, item, aTag, baseUrl, courseCodeToName) {
 
   const details = cleanedText.split("<br>");
   details.shift();
-  const mainSummary = details.splice(0, 2);
+  let mainSummary = details.splice(0, 2);
   mainSummary.reverse();
+  mainSummary = mainSummary.join(" - ");
   item.summary = hourInfo
     ? `${classText} - ${mainSummary} (${hourInfo})`
     : `${classText} - ${mainSummary}`;
